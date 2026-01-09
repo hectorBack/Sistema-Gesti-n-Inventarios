@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Nuevo Material | Bodega</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+</head>
+<body class="bg-light">
+
+<div th:replace="~{navbar/navegacion :: menu_principal}"></div>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="bi bi-plus-circle"></i> Agregar Nuevo Material</h4>
+                </div>
+                <div class="card-body">
+
+                    <form th:action="@{/materiales/guardar}" th:object="${materialRequest}" method="post">
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Código del Material</label>
+                            <input type="text" th:field="*{codigo}" class="form-control"
+                                   placeholder="Ej: Herr-001" required>
+                            <div class="form-text">Este será el identificador único (SKU).</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Nombre del Material</label>
+                            <input type="text" th:field="*{nombre}" class="form-control"
+                                   placeholder="Ej: Aislador de porcelana" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Categoría</label>
+                            <select th:field="*{categoria}" class="form-select" required>
+                                <option value="" selected disabled>Seleccione una categoría...</option>
+                                <option value="Herrajes">Herrajes</option>
+                                <option value="EPP">Equipo de Protección</option>
+                                <option value="Herramientas">Herramientas</option>
+                                <option value="Cables">Cables / Conductores</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Stock Inicial / Inventario Actual</label>
+                            <input type="number" th:field="*{stockInicial}" class="form-control"
+                                   placeholder="0" min="0" required>
+                            <div class="form-text">Cantidad disponible al momento de registrar en el sistema.</div>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-save"></i> Guardar Material
+                            </button>
+                            <a th:href="@{/materiales}" class="btn btn-outline-secondary">Cancelar</a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

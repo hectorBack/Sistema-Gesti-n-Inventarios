@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro de Personal | Bodega</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body class="bg-light">
+
+<div th:replace="~{navbar/navegacion :: menu_principal}"></div>
+
+<div class="container pb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3><i class="bi bi-person-vcard text-primary"></i> Registro de Personal (Entradas/Salidas)</h3>
+    </div>
+
+    <div class="card mb-4 shadow-sm border-0">
+        <div class="card-body">
+            <form th:action="@{/movimientos/detalle}" method="get" class="row g-3">
+                <input type="hidden" name="page" value="0">
+
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold text-secondary">Buscar por Trabajador o Material</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                        <input type="text" name="filtro" th:value="${filtroAnterior}"
+                               class="form-control border-start-0 ps-0" placeholder="Nombre...">
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold text-secondary">Tipo de Movimiento</label>
+                    <select name="tipo" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="INGRESO" th:selected="${tipoAnterior == 'INGRESO'}">Solo Entradas</option>
+                        <option value="SALIDA" th:selected="${tipoAnterior == 'SALIDA'}">Solo Salidas</option>
+                    </select>
+                </div>
+
+                <div class="col-md-5 d-flex align-items-end gap-2">
+                    <button type="submit" class="btn btn-primary px-4 shadow-sm">
+                        <i class="bi bi-funnel"></i> Filtrar
+                    </button>
+                    <a th:href="@{/movimientos/detalle}" class="btn btn-outline-secondary shadow-sm" title="Limpiar Filtros">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow border-0 overflow-hidden">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+            <span class="fw-bold text-secondary text-uppercase small" style="letter-spacing: 1px;">Historial detallado</span>
+            <span class="badge bg-primary rounded-pill" th:text="${totalElements != null ? totalElements : #lists.size(movimientos)} + ' registros'"></span>
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-dark">
+                <tr>
+                    <th class="ps-3 py-3">Fecha y Hora</th>
+                    <th>Trabajador</th>
+                    <th>Material</th>
+                    <th class="text-center">Tipo</th>
+                    <th class="text-center">Cantidad</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${#lists.isEmpty(movimientos)}">
+                    <td colspan="5" class="text-center py-5 text-muted">
+                        <i class="bi bi-clipboard-x fs-2 d-block mb-2"></i>
+                        No se encontraron registros de movimientos.
+                    </td>
+                </tr>
+
+                <tr th:each="mov : ${movimientos}">
+                    <td class="ps-3 text-muted">
+                        <small><i class="bi bi-clock me-1"></i> <span th:text="${mov.fecha}"></span></small>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-person-circle fs-5 text-secondary me-2"></i>
+                            <span class="fw-bold text-dark text-uppercase" style="font-size: 0.9rem;" th:text="${mov.trabajador}"></span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="fw-bold text-primary" th:text="${mov.materialNombre}"></div>
+                        <small class="badge bg-light text-dark border fw-normal" th:text="${mov.materialCodigo}"></small>
+                    </td>
+                    <td class="text-center">
+                        <span th:if="${#strings.equals(mov.tipo, 'INGRESO')}"
+                              class="badge bg-success text-white px-3 py-2 shadow-sm" style="min-width: 100px;">
+                            <i class="bi bi-box-arrow-in-down me-1"></i> ENTRADA
+                        </span>
+                        <span th:if="${#strings.equals(mov.tipo, 'SALIDA')}"
+                              class="badge bg-danger text-white px-3 py-2 shadow-sm" style="min-width: 100px;">
+                            <i class="bi bi-box-arrow-up me-1"></i> SALIDA
+                        </span>
+                    </td>
+                    <td class="text-center">
+                        <span class="fs-5 fw-bold text-dark" th:text="${mov.cantidad}"></span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mt-4" th:if="${totalPages > 0}">
+        <div class="text-muted small">
+            Página <strong th:text="${currentPage + 1}"></strong> de <strong th:text="${totalPages}"></strong>
+        </div>
+
+        <nav aria-label="Navegación de historial">
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                    <a class="page-link shadow-sm"
+                       th:href="@{/movimientos/detalle(page=${currentPage - 1}, filtro=${filtroAnterior}, tipo=${tipoAnterior})}">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                </li>
+
+                <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                    th:classappend="${i == currentPage} ? 'active shadow-sm'">
+                    <a class="page-link" th:text="${i + 1}"
+                       th:href="@{/movimientos/detalle(page=${i}, filtro=${filtroAnterior}, tipo=${tipoAnterior})}"></a>
+                </li>
+
+                <li class="page-item" th:classappend="${currentPage + 1 == totalPages} ? 'disabled'">
+                    <a class="page-link shadow-sm"
+                       th:href="@{/movimientos/detalle(page=${currentPage + 1}, filtro=${filtroAnterior}, tipo=${tipoAnterior})}">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <div class="mt-4 p-3 bg-white rounded border text-muted small shadow-sm">
+        <i class="bi bi-info-circle-fill text-primary"></i>
+        Este registro muestra quién realizó cada operación. Los datos están ordenados por fecha de forma descendente (más recientes primero).
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

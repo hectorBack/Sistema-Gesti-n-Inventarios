@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body>
+
+<nav th:fragment="menu_principal" class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm mb-4">
+    <div class="container">
+        <a class="navbar-brand fw-bold" th:href="@{/materiales}">
+            <i class="bi bi-box-seam-fill text-warning"></i> Control CFE
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/materiales}">
+                        <i class="bi bi-table"></i> Tabla de Control
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/movimientos/detalle}">
+                        <i class="bi bi-person-lines-fill"></i> Movimientos por Personal
+                    </a>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-tools"></i> Administracion
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" th:href="@{/materiales/nuevo}">Nuevo Material</a></li>
+                        <li><a class="dropdown-item" th:href="@{/trabajadores/nuevo}"><i class="bi bi-person-plus"></i> Nuevo Trabajador</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" th:href="@{/trabajadores}"><i class="bi bi-people"></i> Lista de Personal</a></li>
+                        <li><a class="dropdown-item" href="#">Categorías</a></li>
+                    </ul>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/movimientos/registrar}">
+                        <i class="bi bi-arrow-left-right"></i> Registrar Movimiento
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/movimientos/historial}">
+                        <i class="bi bi-journal-text"></i> Historial
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro de Movimiento | Bodega</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+</head>
+<body class="bg-light">
+
+<div th:replace="~{navbar/navegacion :: menu_principal}"></div>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="bi bi-arrow-left-right"></i> Registrar Entrada o Salida</h4>
+                </div>
+                <div class="card-body">
+
+                    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill"></i> <span th:text="${error}"></span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+
+                    <form th:action="@{/movimientos/guardar}" th:object="${movimientoRequest}" method="post">
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Material / Producto</label>
+                            <select th:field="*{materialCodigo}" class="form-select" required>
+                                <option value="" selected disabled>Seleccione un material...</option>
+                                <option th:each="m : ${materiales}"
+                                        th:value="${m.codigo}"
+                                        th:text="${m.codigo + ' - ' + m.nombre + ' (Stock: ' + m.stock + ')'}">
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Responsable (Trabajador)</label>
+                            <select th:field="*{trabajador}" class="form-select" required>
+                                <option value="" selected disabled>Seleccione quién retira/entrega...</option>
+                                <option th:each="t : ${trabajadores}"
+                                        th:value="${t.nombreCompleto}"
+                                        th:text="${t.nombreCompleto}">
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Cantidad</label>
+                                <input type="number" th:field="*{cantidad}" class="form-control" min="1" placeholder="0" required>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Operación</label>
+                                <select th:field="*{tipo}" class="form-select" required>
+                                    <option value="INGRESO">(+) ENTRADA</option>
+                                    <option value="SALIDA">(-) SALIDA</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="bi bi-check-circle"></i> Procesar Registro
+                            </button>
+                            <a th:href="@{/materiales}" class="btn btn-outline-secondary">Cancelar</a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
