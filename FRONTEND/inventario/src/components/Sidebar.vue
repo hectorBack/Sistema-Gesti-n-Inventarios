@@ -2,7 +2,7 @@
   <div class="h-screen w-64 bg-[#064e3b] text-slate-300 flex flex-col fixed shadow-2xl border-r border-green-900">
     <div class="p-6 text-2xl font-bold border-b border-green-900 flex items-center space-x-2">
       <span class="text-green-400">⚡</span>
-      <span>CFE <span class="text-white">Bodega</span></span>
+      <span> <span class="text-white">Sistema de Gestion de Inventarios</span></span>
     </div>
     
     <nav class="flex-1 px-4 py-6 space-y-2">
