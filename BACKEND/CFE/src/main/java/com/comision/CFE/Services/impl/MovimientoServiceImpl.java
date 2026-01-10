@@ -20,7 +20,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -72,19 +74,32 @@ public class MovimientoServiceImpl implements MovimientoService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<MovimientoResponseDTO> listarHistorialFiltrado(String filtro, String tipo, int pagina) {
+    public Page<MovimientoResponseDTO> listarHistorialFiltrado(String filtro, String tipo, LocalDate fecha, int pagina) {
         String search = (filtro != null) ? filtro : "";
 
         TipoMovimiento tipoEnum = null;
         if (tipo != null && !tipo.isEmpty()) {
-            try { tipoEnum = TipoMovimiento.valueOf(tipo.toUpperCase()); }
-            catch (IllegalArgumentException e) { tipoEnum = null; }
+            try {
+                tipoEnum = TipoMovimiento.valueOf(tipo.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                tipoEnum = null;
+            }
+        }
+
+        // --- CAMBIO CLAVE: Lógica de Fechas ---
+        LocalDateTime fechaInicio = null;
+        LocalDateTime fechaFin = null;
+
+        if (fecha != null) {
+            fechaInicio = fecha.atStartOfDay(); // 2024-05-20T00:00:00
+            fechaFin = fecha.atTime(LocalTime.MAX); // 2024-05-20T23:59:59.999
         }
 
         // Definimos 10 registros por página, ordenados por fecha descendente
         Pageable pageable = PageRequest.of(pagina, 10, Sort.by(Sort.Direction.DESC, "fechaRegistro"));
 
-        return movimientoRepository.buscarConFiltros(search, tipoEnum, pageable)
+        // --- CAMBIO CLAVE: Enviamos fechaInicio y fechaFin al Repository ---
+        return movimientoRepository.buscarConFiltros(search, tipoEnum, fechaInicio, fechaFin, pageable)
                 .map(this::mapToResponseDTO);
     }
 
@@ -130,6 +145,7 @@ public class MovimientoServiceImpl implements MovimientoService {
 
         return mapToResponseDTO(movimientoRepository.save(mov));
     }
+
 
     private MovimientoResponseDTO mapToResponseDTO(Movimiento entity) {
         MovimientoResponseDTO dto = new MovimientoResponseDTO();

@@ -7,6 +7,7 @@ import com.comision.CFE.Services.MovimientoService;
 import com.comision.CFE.Services.TrabajadorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -14,6 +15,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -52,10 +54,11 @@ public class MovimientoController {
     public ResponseEntity<Page<MovimientoResponseDTO>> verDetalleMovimientos(
             @RequestParam(required = false) String filtro,
             @RequestParam(required = false) String tipo,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha,
             @RequestParam(defaultValue = "0") int page) {
 
         // Obtenemos la página de movimientos desde el servicio
-        Page<MovimientoResponseDTO> paginaMov = movimientoService.listarHistorialFiltrado(filtro, tipo, page);
+        Page<MovimientoResponseDTO> paginaMov = movimientoService.listarHistorialFiltrado(filtro, tipo, fecha, page);
 
         // Devolvemos la página completa (incluye datos y metadata de paginación)
         return ResponseEntity.ok(paginaMov);
