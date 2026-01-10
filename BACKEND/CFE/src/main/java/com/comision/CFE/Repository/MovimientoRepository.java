@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface MovimientoRepository extends JpaRepository<Movimiento, Long> {
@@ -23,11 +24,15 @@ public interface MovimientoRepository extends JpaRepository<Movimiento, Long> {
     List<Movimiento> findByTipo(TipoMovimiento tipo);
 
     @Query("SELECT m FROM Movimiento m WHERE " +
-            "(LOWER(m.trabajador.nombreCompleto) LIKE LOWER(CONCAT('%', :filtro, '%')) OR " +
-            "LOWER(m.material.nombre) LIKE LOWER(CONCAT('%', :filtro, '%')) OR " +
-            "LOWER(m.material.codigo) LIKE LOWER(CONCAT('%', :filtro, '%'))) AND " +
-            "(:tipo IS NULL OR m.tipo = :tipo)")
-    Page<Movimiento> buscarConFiltros(@Param("filtro") String filtro,
-                                      @Param("tipo") TipoMovimiento tipo,
-                                      Pageable pageable);
+            "(LOWER(m.material.nombre) LIKE LOWER(CONCAT('%', :filtro, '%')) OR " +
+            " LOWER(m.trabajador.nombreCompleto) LIKE LOWER(CONCAT('%', :filtro, '%'))) AND " +
+            "(CAST(:tipo AS string) IS NULL OR m.tipo = :tipo) AND " +
+            "(CAST(:inicio AS timestamp) IS NULL OR m.fechaRegistro >= :inicio) AND " +
+            "(CAST(:fin AS timestamp) IS NULL OR m.fechaRegistro <= :fin)")
+    Page<Movimiento> buscarConFiltros(
+            @Param("filtro") String filtro,
+            @Param("tipo") TipoMovimiento tipo,
+            @Param("inicio") LocalDateTime inicio,
+            @Param("fin") LocalDateTime fin,
+            Pageable pageable);
 }
