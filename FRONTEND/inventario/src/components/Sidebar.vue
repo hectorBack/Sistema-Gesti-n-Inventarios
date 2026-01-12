@@ -6,6 +6,13 @@
     </div>
     
     <nav class="flex-1 px-4 py-6 space-y-2">
+      <router-link to="/dashboard" 
+        class="flex items-center space-x-3 p-3 rounded-lg hover:bg-green-900/50 transition-all font-medium"
+        active-class="bg-green-600 text-white shadow-lg shadow-green-900/20">
+        <span class="text-xl">📊</span>
+        <span>Dashboard</span>
+      </router-link>
+
       <router-link to="/inventario" 
         class="flex items-center space-x-3 p-3 rounded-lg hover:bg-green-900/50 transition-all font-medium"
         active-class="bg-green-600 text-white shadow-lg shadow-green-900/20">

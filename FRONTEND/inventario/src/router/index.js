@@ -7,6 +7,7 @@ const router = createRouter({
   routes: [
     { path: '/', redirect: '/inventario' },
     { path: '/inventario', component: InventarioView },
+    { path: '/dashboard', component: () => import('../views/DashboardView.vue') },
     { path: '/movimientos', component: () => import('../views/MovimientosView.vue') },
     { path: '/trabajadores', component: () => import('../views/TrabajadoresView.vue') }
   ]
