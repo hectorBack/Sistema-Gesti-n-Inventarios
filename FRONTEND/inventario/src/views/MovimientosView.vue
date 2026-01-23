@@ -7,11 +7,12 @@ const movimientos = ref([]);
 const materiales = ref([]);
 const trabajadores = ref([]);
 const cargando = ref(true);
+const exportando = ref(false); // Estado para el spinner del PDF
 
 // --- FILTROS ---
 const filtroTexto = ref("");
 const filtroTipo = ref("");
-const filtroFecha = ref(""); // Nueva variable para fecha
+const filtroFecha = ref(""); 
 const paginaActual = ref(0);
 const totalPaginas = ref(0);
 const totalElementos = ref(0);
@@ -45,7 +46,7 @@ const obtenerMovimientos = async () => {
       params: { 
         filtro: filtroTexto.value, 
         tipo: filtroTipo.value, 
-        fecha: filtroFecha.value, // Parámetro enviado al Backend
+        fecha: filtroFecha.value, 
         page: paginaActual.value 
       }
     });
@@ -56,6 +57,33 @@ const obtenerMovimientos = async () => {
     dispararToast("Error al cargar historial", "error");
   } finally {
     cargando.value = false;
+  }
+};
+
+const exportarPDF = async () => {
+  exportando.value = true;
+  try {
+    const response = await axios.get("http://localhost:6464/api/movimientos/exportar/pdf", {
+      responseType: 'blob' 
+    });
+
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    
+    const fechaDescarga = new Date().toISOString().split('T')[0];
+    link.setAttribute('download', `historial_movimientos_${fechaDescarga}.pdf`);
+    
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+    
+    dispararToast("📄 Reporte PDF descargado");
+  } catch (error) {
+    dispararToast("Error al generar el reporte", "error");
+  } finally {
+    exportando.value = false;
   }
 };
 
@@ -96,7 +124,7 @@ const eliminarMovimiento = async (id) => {
   }
 };
 
-// --- WATCHERS CON RETRASO (DEBOUNCE) ---
+// --- WATCHERS ---
 let timeout = null;
 watch([filtroTexto, filtroTipo, filtroFecha], () => {
   clearTimeout(timeout);
@@ -116,14 +144,29 @@ onMounted(() => {
 
 <template>
   <div class="space-y-6">
-    <div class="flex justify-between items-center">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
       <h2 class="text-2xl font-bold text-white flex items-center gap-2">
         <span class="text-blue-500">📦</span> Historial de Movimientos
       </h2>
-      <button @click="mostrarModal = true" 
-        class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-lg font-bold shadow-lg transition-all active:scale-95">
-        + Registrar Movimiento
-      </button>
+      
+      <div class="flex gap-3 w-full md:w-auto">
+        <button 
+          @click="exportarPDF" 
+          :disabled="exportando"
+          class="flex-1 md:flex-none bg-slate-800 hover:bg-slate-700 text-slate-300 px-5 py-2 rounded-lg font-bold border border-slate-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+        >
+          <span v-if="!exportando">📄 Exportar PDF</span>
+          <span v-else class="flex items-center gap-2">
+            <div class="animate-spin h-4 w-4 border-2 border-slate-400 border-t-transparent rounded-full"></div>
+            Procesando...
+          </span>
+        </button>
+
+        <button @click="mostrarModal = true" 
+          class="flex-1 md:flex-none bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-lg font-bold shadow-lg transition-all active:scale-95">
+          + Registrar Movimiento
+        </button>
+      </div>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-[#0f172a] p-4 rounded-xl border border-slate-800">
@@ -154,21 +197,21 @@ onMounted(() => {
         <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
       </div>
 
-      <div class="bg-[#0f172a] rounded-xl border border-slate-800 overflow-hidden">
+      <div class="bg-[#0f172a] rounded-xl border border-slate-800 overflow-hidden shadow-2xl">
         <table class="w-full text-left">
           <thead class="bg-slate-900/50 text-slate-400 text-xs uppercase tracking-wider">
             <tr>
               <th class="px-6 py-4">Fecha</th>
               <th class="px-6 py-4">Tipo</th>
               <th class="px-6 py-4">Material</th>
-              <th class="px-6 py-4">Cantidad</th>
+              <th class="px-6 py-4 text-center">Cant.</th>
               <th class="px-6 py-4">Trabajador</th>
               <th class="px-6 py-4 text-center">Acciones</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-800 text-slate-300">
             <tr v-for="mov in movimientos" :key="mov.id" class="hover:bg-slate-800/40 transition-colors">
-              <td class="px-6 py-4 text-sm font-mono">{{ mov.fecha }}</td>
+              <td class="px-6 py-4 text-xs font-mono text-slate-400">{{ mov.fecha }}</td>
               <td class="px-6 py-4">
                 <span :class="mov.tipo === 'INGRESO' ? 'bg-green-900/30 text-green-400 border-green-800' : 'bg-orange-900/30 text-orange-400 border-orange-800'" 
                   class="px-2 py-1 rounded border font-bold text-[10px] uppercase">
@@ -176,37 +219,37 @@ onMounted(() => {
                 </span>
               </td>
               <td class="px-6 py-4">
-                <div class="text-white font-medium">{{ mov.materialNombre }}</div>
+                <div class="text-white font-medium text-sm">{{ mov.materialNombre }}</div>
                 <div class="text-[10px] text-slate-500 font-mono">{{ mov.materialCodigo }}</div>
               </td>
-              <td class="px-6 py-4 font-bold text-lg">{{ mov.cantidad }}</td>
-              <td class="px-6 py-4 text-slate-400">{{ mov.trabajador }}</td>
+              <td class="px-6 py-4 text-center font-bold text-lg text-blue-400">{{ mov.cantidad }}</td>
+              <td class="px-6 py-4 text-slate-400 text-sm">{{ mov.trabajador }}</td>
               <td class="px-6 py-4 text-center">
-                <button @click="eliminarMovimiento(mov.id)" class="text-slate-500 hover:text-red-500 transition-colors p-2">
-                  🗑️
+                <button @click="eliminarMovimiento(mov.id)" class="hover:bg-red-500/10 p-2 rounded-full transition-colors group">
+                  <span class="group-hover:scale-110 inline-block">🗑️</span>
                 </button>
               </td>
             </tr>
             <tr v-if="movimientos.length === 0 && !cargando">
-              <td colspan="6" class="px-6 py-10 text-center text-slate-500 italic">No se encontraron movimientos con estos filtros.</td>
+              <td colspan="6" class="px-6 py-10 text-center text-slate-500 italic">No se encontraron movimientos.</td>
             </tr>
           </tbody>
         </table>
         
         <div class="flex justify-between items-center bg-slate-900/30 p-4 border-t border-slate-800">
-          <span class="text-slate-400 text-xs font-medium">
-            Total: <span class="text-white">{{ totalElementos }}</span> registros
+          <span class="text-slate-400 text-xs font-medium uppercase tracking-widest">
+            Total: <span class="text-white">{{ totalElementos }}</span>
           </span>
           <div class="flex items-center gap-2">
             <button @click="paginaActual--" :disabled="paginaActual === 0"
-              class="px-3 py-1.5 rounded-lg bg-slate-800 text-white disabled:opacity-20 hover:bg-slate-700 transition-all text-xs font-bold">
+              class="px-4 py-1.5 rounded-lg bg-slate-800 text-white disabled:opacity-20 hover:bg-slate-700 transition-all text-xs font-bold">
               Anterior
             </button>
-            <span class="px-3 py-1.5 bg-blue-600/10 text-blue-400 border border-blue-600/30 rounded-lg font-bold text-xs">
+            <span class="px-4 py-1.5 bg-blue-600/10 text-blue-400 border border-blue-600/30 rounded-lg font-bold text-xs">
               {{ paginaActual + 1 }} / {{ totalPaginas }}
             </span>
             <button @click="paginaActual++" :disabled="paginaActual + 1 >= totalPaginas"
-              class="px-3 py-1.5 rounded-lg bg-slate-800 text-white disabled:opacity-20 hover:bg-slate-700 transition-all text-xs font-bold">
+              class="px-4 py-1.5 rounded-lg bg-slate-800 text-white disabled:opacity-20 hover:bg-slate-700 transition-all text-xs font-bold">
               Siguiente
             </button>
           </div>
@@ -215,25 +258,25 @@ onMounted(() => {
     </div>
 
     <div v-if="mostrarModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div class="bg-[#1e293b] w-full max-w-md rounded-2xl border border-slate-700 shadow-2xl overflow-hidden">
+      <div class="bg-[#1e293b] w-full max-w-md rounded-2xl border border-slate-700 shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
         <div class="bg-slate-800/50 p-4 border-b border-slate-700 flex justify-between items-center">
-          <h3 class="text-lg font-bold text-white">Registrar Movimiento</h3>
-          <button @click="mostrarModal = false" class="text-slate-400 hover:text-white text-2xl">&times;</button>
+          <h3 class="text-lg font-bold text-white">Nuevo Movimiento</h3>
+          <button @click="mostrarModal = false" class="text-slate-400 hover:text-white text-2xl transition-colors">&times;</button>
         </div>
         
         <div class="p-6 space-y-4">
           <div>
             <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1 block">Material</label>
-            <select v-model="nuevoMovimiento.materialCodigo" class="w-full bg-[#0f172a] border border-slate-600 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-blue-500 outline-none">
+            <select v-model="nuevoMovimiento.materialCodigo" class="w-full bg-[#0f172a] border border-slate-600 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all">
               <option value="">Seleccione material...</option>
-              <option v-for="m in materiales" :key="m.codigo" :value="m.codigo">{{ m.nombre }} ({{ m.codigo }})</option>
+              <option v-for="m in materiales" :key="m.codigo" :value="m.codigo">{{ m.nombre }}</option>
             </select>
           </div>
 
           <div>
-            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1 block">Trabajador</label>
-            <select v-model="nuevoMovimiento.trabajador" class="w-full bg-[#0f172a] border border-slate-600 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-blue-500 outline-none">
-              <option value="">Seleccione trabajador...</option>
+            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1 block">Trabajador Responsable</label>
+            <select v-model="nuevoMovimiento.trabajador" class="w-full bg-[#0f172a] border border-slate-600 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+              <option value="">¿Quién realiza el movimiento?</option>
               <option v-for="t in trabajadores" :key="t.id" :value="t.nombreCompleto">{{ t.nombreCompleto }}</option>
             </select>
           </div>
@@ -244,7 +287,7 @@ onMounted(() => {
               <input v-model.number="nuevoMovimiento.cantidad" type="number" min="1" class="w-full bg-[#0f172a] border border-slate-600 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-blue-500 outline-none" />
             </div>
             <div>
-              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1 block">Tipo</label>
+              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1 block">Tipo Acción</label>
               <select v-model="nuevoMovimiento.tipo" class="w-full bg-[#0f172a] border border-slate-600 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-blue-500 outline-none">
                 <option value="SALIDA">Salida 📤</option>
                 <option value="INGRESO">Ingreso 📥</option>
@@ -255,7 +298,7 @@ onMounted(() => {
 
         <div class="p-6 bg-slate-800/30 flex gap-3">
           <button @click="mostrarModal = false" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-2.5 rounded-lg font-bold transition-colors">Cancelar</button>
-          <button @click="registrarMovimiento" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-2.5 rounded-lg font-bold shadow-lg transition-transform active:scale-95">Confirmar</button>
+          <button @click="registrarMovimiento" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-2.5 rounded-lg font-bold shadow-lg transition-all active:scale-95">Confirmar</button>
         </div>
       </div>
     </div>
@@ -274,4 +317,10 @@ onMounted(() => {
 .toast-enter-active, .toast-leave-active { transition: all 0.4s ease; }
 .toast-enter-from { transform: translateX(100px); opacity: 0; }
 .toast-leave-to { opacity: 0; transform: scale(0.9); }
+
+/* Personalización del scroll de la tabla */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #0f172a; }
+::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #334155; }
 </style>
