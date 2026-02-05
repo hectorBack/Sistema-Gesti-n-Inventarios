@@ -2,9 +2,12 @@ package com.comision.CFE.Controllers;
 
 import com.comision.CFE.DTO.MovimientoRequestDTO;
 import com.comision.CFE.DTO.MovimientoResponseDTO;
+import com.comision.CFE.Entity.Movimiento;
 import com.comision.CFE.Services.MaterialService;
 import com.comision.CFE.Services.MovimientoService;
+import com.comision.CFE.Services.ReporteService;
 import com.comision.CFE.Services.TrabajadorService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -15,8 +18,10 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController // Cambiado de @Controller
@@ -27,6 +32,7 @@ public class MovimientoController {
     private final MovimientoService movimientoService;
     private final MaterialService materialService;
     private final TrabajadorService trabajadorService;
+    private final ReporteService reporteService;
 
     // 3. OBTENER UN MOVIMIENTO POR ID
     @GetMapping("/{id}")
@@ -89,5 +95,16 @@ public class MovimientoController {
             error.put("error", "No se pudo eliminar: " + e.getMessage());
             return ResponseEntity.badRequest().body(error);
         }
+    }
+
+    @GetMapping("/exportar/pdf")
+    public void exportarAPdf(HttpServletResponse response) throws IOException {
+        response.setContentType("application/pdf");
+        String headerKey = "Content-Disposition";
+        String headerValue = "attachment; filename=movimientos_" + LocalDate.now() + ".pdf";
+        response.setHeader(headerKey, headerValue);
+
+        List<Movimiento> movimientos = movimientoService.obtenerEntidadesParaReporte();
+        reporteService.exportarMovimientosPDF(response, movimientos);
     }
 }

@@ -133,8 +133,8 @@ onMounted(obtenerInventario);
       </button>
 
       <button @click="busqueda = ''; filtroCategoria = ''; soloCritico = false" 
-        class="text-sm text-slate-400 hover:text-white transition-colors underline decoration-dotted">
-        Limpiar filtros
+        class="text-slate-400 hover:text-white transition-colors text-sm font-medium flex items-center justify-center gap-2 border border-dashed border-slate-700 rounded-lg hover:border-slate-500">
+        🗑️ Limpiar filtros
       </button>
     </div>
 

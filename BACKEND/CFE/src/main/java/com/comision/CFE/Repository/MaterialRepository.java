@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Map;
 
 public interface MaterialRepository extends JpaRepository<Material, String> {
 
@@ -26,5 +27,14 @@ public interface MaterialRepository extends JpaRepository<Material, String> {
                                     @Param("categoria") String categoria,
                                     @Param("soloCritico") boolean soloCritico,
                                     Pageable pageable);
+
+    // Contar materiales con stock bajo (ejemplo < 5 unidades)
+    @Query("SELECT COUNT(m) FROM Material m WHERE m.stock < 5")
+    long countStockCritico();
+
+    // Obtener datos para la gráfica de pastel
+    @Query("SELECT new map(m.categoria as nombre, COUNT(m) as cantidad) " +
+            "FROM Material m GROUP BY m.categoria")
+    List<Map<String, Object>> countMaterialesPorCategoria();
 
 }

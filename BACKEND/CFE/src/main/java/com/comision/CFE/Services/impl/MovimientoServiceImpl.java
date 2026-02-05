@@ -146,6 +146,12 @@ public class MovimientoServiceImpl implements MovimientoService {
         return mapToResponseDTO(movimientoRepository.save(mov));
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<Movimiento> obtenerEntidadesParaReporte() {
+        return movimientoRepository.findAll(Sort.by(Sort.Direction.DESC, "fechaRegistro"));
+    }
+
 
     private MovimientoResponseDTO mapToResponseDTO(Movimiento entity) {
         MovimientoResponseDTO dto = new MovimientoResponseDTO();

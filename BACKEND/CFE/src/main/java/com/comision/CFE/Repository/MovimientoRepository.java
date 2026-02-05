@@ -35,4 +35,11 @@ public interface MovimientoRepository extends JpaRepository<Movimiento, Long> {
             @Param("inicio") LocalDateTime inicio,
             @Param("fin") LocalDateTime fin,
             Pageable pageable);
+
+    // Contar movimientos desde las 00:00 de hoy
+    @Query("SELECT COUNT(m) FROM Movimiento m WHERE m.fechaRegistro >= :fecha")
+    long countMovimientosDelDia(@Param("fecha") LocalDateTime fecha);
+
+    // Obtener los últimos 5 para la tabla de actividad
+    List<Movimiento> findTop5ByOrderByFechaRegistroDesc();
 }
